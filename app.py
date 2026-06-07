@@ -111,11 +111,8 @@ with st.form("prediction_form"):
     submitted = st.form_submit_button("⚡ ANALYSE CARDIOVASCULAR RISK")
 
 if submitted:
-    # Original features
     age_chol_risk = age * chol / 1000
     bp_category = 0 if trestbps < 120 else (1 if trestbps < 140 else 2)
-
-    # New features
     heart_rate_reserve = thalach - (220 - age)
     chol_per_age = chol / age
     st_index = oldpeak * (slope + 1)
@@ -126,40 +123,95 @@ if submitted:
         'exang': exang, 'oldpeak': oldpeak, 'slope': slope, 'ca': ca, 'thal': thal,
         'age_chol_risk': age_chol_risk, 'bp_category': bp_category,
         'heart_rate_reserve': heart_rate_reserve,
-        'chol_per_age': chol_per_age,
-        'st_index': st_index
+        'chol_per_age': chol_per_age, 'st_index': st_index
     }
 
     input_df = pd.DataFrame([input_dict])
     prediction = model.predict(input_df)[0]
     confidence = model.predict_proba(input_df)[0][prediction]
     result = "Heart Disease" if prediction == 1 else "No Heart Disease"
+    color = "#ef4444" if prediction == 1 else "#22c55e"
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Dribbble style cards
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.markdown(f"""
+            <div style='background:#111827; border-radius:16px; padding:1.2rem 1.5rem;
+            border:1px solid #1f2937;'>
+                <p style='color:#6b7280; font-size:10px; margin:0; font-weight:600; letter-spacing:1.5px;'>DIAGNOSIS</p>
+                <p style='color:{color}; font-size:1.1rem; font-weight:700; margin:0.5rem 0 0 0;'>
+                    {"⚠️ Positive" if prediction==1 else "✅ Negative"}
+                </p>
+                <span style='background:{"#450a0a" if prediction==1 else "#052e16"}; color:{color}; 
+                font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600;'>
+                    {"High Risk" if prediction==1 else "Low Risk"}</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with c2:
+        st.markdown(f"""
+            <div style='background:#111827; border-radius:16px; padding:1.2rem 1.5rem;
+            border:1px solid #1f2937;'>
+                <p style='color:#6b7280; font-size:10px; margin:0; font-weight:600; letter-spacing:1.5px;'>CONFIDENCE</p>
+                <p style='color:#a855f7; font-size:2rem; font-weight:800; margin:0.5rem 0 0.3rem 0;'>
+                    {round(confidence*100, 1)}%
+                </p>
+                <div style='height:4px; background:#1f2937; border-radius:99px;'>
+                    <div style='height:4px; width:{round(confidence*100)}%; background:#a855f7; border-radius:99px;'></div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with c3:
+        chol_status = "Normal" if chol < 200 else ("Borderline" if chol < 240 else "High")
+        chol_color = "#22c55e" if chol < 200 else ("#f59e0b" if chol < 240 else "#ef4444")
+        st.markdown(f"""
+            <div style='background:#111827; border-radius:16px; padding:1.2rem 1.5rem;
+            border:1px solid #1f2937;'>
+                <p style='color:#6b7280; font-size:10px; margin:0; font-weight:600; letter-spacing:1.5px;'>CHOLESTEROL</p>
+                <p style='color:#f59e0b; font-size:2rem; font-weight:800; margin:0.5rem 0 0 0;'>
+                    {chol}<span style='font-size:11px; color:#6b7280; margin-left:3px;'>mg/dl</span>
+                </p>
+                <span style='color:{chol_color}; font-size:10px; font-weight:600;'>{chol_status}</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with c4:
+        st.markdown(f"""
+            <div style='background:#111827; border-radius:16px; padding:1.2rem 1.5rem;
+            border:1px solid #1f2937;'>
+                <p style='color:#6b7280; font-size:10px; margin:0; font-weight:600; letter-spacing:1.5px;'>HEART RATE</p>
+                <p style='color:#ec4899; font-size:2rem; font-weight:800; margin:0.5rem 0 0 0;'>
+                    {thalach}<span style='font-size:11px; color:#6b7280; margin-left:3px;'>bpm</span>
+                </p>
+                <span style='color:#6b7280; font-size:10px;'>Max Heart Rate</span>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     _, col_b, _ = st.columns([1, 2, 1])
     with col_b:
-        if prediction == 1:
-            color = "#ef4444"
-            st.error(f"⚠️ **Heart Disease Detected**")
-        else:
-            color = "#22c55e"
-            st.success(f"✅ **No Heart Disease Detected**")
-
         st.markdown(f"""
-            <div style='background:#0f0f1a; border-radius:16px; padding:2rem;
-            text-align:center; border:1px solid {color}44; margin-top:1rem;'>
-                <p style='color:#6b7280; margin:0; font-size:11px; letter-spacing:3px;'>
-                    MODEL CONFIDENCE</p>
+            <div style='background:#111827; border-radius:20px; padding:2rem;
+            text-align:center; border:1px solid {color}33; border-top:4px solid {color};'>
+                <p style='color:#6b7280; margin:0; font-size:11px; letter-spacing:3px; font-weight:600;'>
+                    OVERALL RISK SCORE</p>
                 <p style='color:{color}; font-size:4rem; font-weight:800; margin:0.5rem 0;'>
-                    {round(confidence * 100, 1)}%
+                    {round(confidence*100, 1)}%
                 </p>
-                <div style='height:6px; background:#1f2937; border-radius:99px; margin:1rem 0;'>
-                    <div style='height:6px; width:{round(confidence*100)}%;
+                <div style='height:8px; background:#1f2937; border-radius:99px; margin:1rem 0;'>
+                    <div style='height:8px; width:{round(confidence*100)}%;
                         background:linear-gradient(90deg, {color}66, {color});
                         border-radius:99px;'></div>
                 </div>
-                <p style='color:#4b5563; font-size:11px; margin:0; letter-spacing:1px;'>
-                    GRADIENT BOOSTING · 98.54% TRAINING ACCURACY · 5 ENGINEERED FEATURES
+                <p style='color:#9ca3af; font-size:13px; margin:0;'>
+                    {"⚠️ High risk detected. Please consult a cardiologist." if prediction==1 else "✅ Low risk. Keep maintaining a healthy lifestyle!"}
+                </p>
+                <p style='color:#374151; font-size:11px; margin:0.8rem 0 0 0; letter-spacing:1px;'>
+                    GRADIENT BOOSTING · 98.54% ACCURACY · 5 ENGINEERED FEATURES
                 </p>
             </div>
         """, unsafe_allow_html=True)
