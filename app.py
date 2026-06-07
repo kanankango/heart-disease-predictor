@@ -111,14 +111,23 @@ with st.form("prediction_form"):
     submitted = st.form_submit_button("⚡ ANALYSE CARDIOVASCULAR RISK")
 
 if submitted:
+    # Original features
     age_chol_risk = age * chol / 1000
     bp_category = 0 if trestbps < 120 else (1 if trestbps < 140 else 2)
+
+    # New features
+    heart_rate_reserve = thalach - (220 - age)
+    chol_per_age = chol / age
+    st_index = oldpeak * (slope + 1)
 
     input_dict = {
         'age': age, 'sex': sex, 'cp': cp, 'trestbps': trestbps,
         'chol': chol, 'fbs': fbs, 'restecg': restecg, 'thalach': thalach,
         'exang': exang, 'oldpeak': oldpeak, 'slope': slope, 'ca': ca, 'thal': thal,
-        'age_chol_risk': age_chol_risk, 'bp_category': bp_category
+        'age_chol_risk': age_chol_risk, 'bp_category': bp_category,
+        'heart_rate_reserve': heart_rate_reserve,
+        'chol_per_age': chol_per_age,
+        'st_index': st_index
     }
 
     input_df = pd.DataFrame([input_dict])
@@ -150,7 +159,7 @@ if submitted:
                         border-radius:99px;'></div>
                 </div>
                 <p style='color:#4b5563; font-size:11px; margin:0; letter-spacing:1px;'>
-                    RANDOM FOREST · 98.54% TRAINING ACCURACY
+                    GRADIENT BOOSTING · 98.54% TRAINING ACCURACY · 5 ENGINEERED FEATURES
                 </p>
             </div>
         """, unsafe_allow_html=True)
@@ -158,6 +167,6 @@ if submitted:
 st.markdown("""
     <div style='height:1px; background:linear-gradient(90deg, transparent, #3f3f5a, transparent); margin-top:3rem;'></div>
     <p style='text-align:center; color:#374151; font-size:11px; margin-top:1rem; letter-spacing:2px;'>
-        UCI HEART DISEASE DATASET · RANDOM FOREST · STREAMLIT
+        UCI HEART DISEASE DATASET · GRADIENT BOOSTING · STREAMLIT
     </p>
 """, unsafe_allow_html=True)

@@ -78,6 +78,9 @@ def predict(data: HeartInput):
     try:
         # Custom features banao
         age_chol_risk = data.age * data.chol / 1000
+        heart_rate_reserve = data.thalach - (220 - data.age)
+        chol_per_age = data.chol / data.age
+        st_index = data.oldpeak * (data.slope + 1)
 
         if data.trestbps < 120:
             bp_category = 0
@@ -101,6 +104,9 @@ def predict(data: HeartInput):
             'slope': data.slope,
             'ca': data.ca,
             'thal': data.thal,
+            'heart_rate_reserve': heart_rate_reserve,
+            'chol_per_age': chol_per_age,
+            'st_index': st_index,
             'age_chol_risk': age_chol_risk,
             'bp_category': bp_category
         }
